@@ -110,15 +110,15 @@ Route::get('/download-file/{hash}', function ($hash) {
             $zipName = storage_path('app\public\files.zip');
             $zip = new ZipArchive();
             if ($zip->open($zipName, ZipArchive::CREATE) === TRUE) {
-                $fileData = '';
                 foreach ($attachment as $i => $item) {
+                    $fileData = '';
 
-                    foreach ($item->chunks as $chunk) {
-                        $fileData .= $chunk;
+                    foreach ($item->chunks as $val) {
+                        $fileData .= base64_decode($val->chunk);
                     }
                     $filename = $i . '_' . $item->name;
-                    $fileContent = base64_decode($fileData);
-                    $zip->addFromString($filename, $fileContent);
+                    // $fileContent = base64_decode($fileData);
+                    $zip->addFromString($filename, $fileData);
                 }
 
                 $zip->close();
@@ -128,13 +128,13 @@ Route::get('/download-file/{hash}', function ($hash) {
 
             $fileData = '';
             foreach ($attachment->chunks as $item) {
-                $fileData .= $item->chunk;
+                $fileData .= base64_decode($item->chunk);
             }
-            $fileContent = base64_decode($fileData);
+            // $fileContent = base64_decode($fileData);
             $filename = $attachment->name;
             // Create a response object with the file content and set the appropriate headers
-            $response = response($fileContent)
-                ->header('Content-Type', 'application/pdf')
+            $response = response($fileData)
+                ->header('Content-Type', $attachment->mime_type)
                 ->header("Content-Disposition", "attachment; filename=$filename");
             // Return the response object to initiate the download
             return $response;
